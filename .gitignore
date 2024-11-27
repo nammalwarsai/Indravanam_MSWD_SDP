@@ -2,11 +2,9 @@
 client/node_modules/
 server/node_modules/
 
-# Keep node_modules in the main directory for TailwindCSS and other top-level dependencies
-/node_modules
-# Ignore TailwindCSS build artifacts if generated
-tailwind.config.js
-postcss.config.js
+# Do not ignore the main node_modules (for TailwindCSS and other dependencies)
+# Keep this to avoid redeploy issues if these are needed
+!/node_modules
 
 # Ignore build directories
 build/
@@ -24,7 +22,8 @@ server/build/
 .env.production.local
 server/.env
 
-# Ignore package-lock and yarn.lock files (optional, remove if these should be tracked)
+# Ignore package-lock and yarn.lock files if not essential
+# You can remove these from ignore if you want exact version tracking for dependencies
 package-lock.json
 yarn.lock
 client/package-lock.json
