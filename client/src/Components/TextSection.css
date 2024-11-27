@@ -1,0 +1,83 @@
+.text-section {
+    display: flex; /* Use flexbox to arrange items */
+    justify-content: space-between; /* Space out the text and carousel */
+    align-items: flex-start; /* Align items at the start */
+    background-color: #163020; /* Background color for the section */
+    color: #EEF0E5; /* Text color */
+    padding: 40px; /* Padding for the text section */
+    height: 100vh; /* Adjust height as needed */
+  }
+  
+  .text-container {
+    flex: 1; /* Allow text to take the full available space on the left */
+    max-width: 60%; /* Limit the width of the text container */
+    text-align: left; /* Align text to the left */
+  }
+  
+  .carousel-container {
+    width: 40%; /* Adjust the width of the carousel as needed */
+    height: 80%; /* Set height to take full available height */
+    display: flex; /* Ensure carousel fits correctly */
+    justify-content: flex-end; /* Align carousel to the right */
+    padding-left: 20px; /* Space between text and carousel */
+  }
+  
+  .heading {
+    font-size: 48px; /* Adjust size as needed */
+    font-family: 'Montserrat', sans-serif; /* Use Montserrat font */
+    font-weight: 500; /* Medium weight */
+    margin-bottom: 20px; /* Space below heading */
+  }
+  
+  .paragraph {
+    font-size: 20px; /* Adjust size as needed */
+    font-family: 'Montserrat', sans-serif; /* Use Montserrat font */
+    font-weight: 400; /* Regular weight */
+    margin-bottom: 20px; /* Space below paragraph */
+  }
+  
+  .button-container {
+    margin-top: auto; /* Push buttons to the bottom */
+  }
+  
+  .btn {
+    background-color: #007BFF; /* Button color */
+    color: #FFFFFF; /* Button text color */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 40px;
+    cursor: pointer;
+    margin-right: 300px;
+  }
+  
+  .encrypt-btn {
+    margin-right: 20px; /* Adds space after the Encrypt button */
+  }
+  
+  .btn:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+  }
+  
+  /* MiniCarousel styles can be added here or in a separate CSS file */
+  .page-container {
+    padding-top: 50px; /* This moves both components down */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* This centers the content horizontally */
+  }
+  
+  .text-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centers the text and carousel */
+  }
+  
+  .carousel-container {
+    margin-top: 20px; /* Adds space between the text and carousel */
+  }
+  
+  .button-container {
+    display: flex;
+    gap: 20px; /* Adds space between the Encrypt buttons */
+  }
+  
