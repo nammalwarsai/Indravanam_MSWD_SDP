@@ -26,9 +26,7 @@ server/.env
 # You can remove these from ignore if you want exact version tracking for dependencies
 package-lock.json
 yarn.lock
-client/package-lock.json
 client/yarn.lock
-server/package-lock.json
 server/yarn.lock
 
 # Ignore logs
