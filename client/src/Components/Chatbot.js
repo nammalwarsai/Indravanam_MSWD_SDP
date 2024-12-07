@@ -17,7 +17,7 @@ const Chatbot = () => {
       const chatCompletion = await client.chatCompletion({
         model: "Qwen/Qwen2.5-Coder-32B-Instruct",
         messages: [{ role: "user", content: userInput }],
-        max_tokens: 500,
+        max_tokens: 500000,
       });
 
       const response = chatCompletion.choices[0].message.content;
