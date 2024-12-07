@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useTheme } from "./ThemeContext"; // Adjust path as necessary
-import Footer from "./Footer";
 
 const SeeWeather = () => {
   const [city, setCity] = useState(""); // Store user input city
@@ -34,12 +33,13 @@ const SeeWeather = () => {
 
   return (
     <div
-      className={`flex justify-center items-center min-h-screen transition-all ${
+      className={`flex flex-col justify-center items-center min-h-screen transition-all ${
         theme === "light"
           ? "bg-gradient-to-r from-green-100 via-blue-100 to-green-200 text-black"
           : "bg-gradient-to-r from-green-900 via-blue-900 to-green-800 text-white"
       }`}
     >
+      {/* Main Card */}
       <div
         className={`p-8 rounded-lg shadow-lg w-96 ${
           theme === "light" ? "bg-white" : "bg-gray-800"
@@ -90,32 +90,40 @@ const SeeWeather = () => {
             {loading ? "Loading..." : "See the Weather"}
           </button>
         </div>
-
-        {/* Weather data display */}
-        {weather && !loading && (
-          <div className="mt-6 space-y-4">
-            <h2 className="text-xl font-semibold">
-              {weather.name}, {weather.sys.country}
-            </h2>
-            <p className="text-lg capitalize">{weather.weather[0].description}</p>
-            <p className="text-xl font-bold">{weather.main.temp}°C</p>
-            <div className="grid grid-cols-2 gap-2">
-              <p className="text-sm">
-                <span className="font-semibold">Humidity:</span> {weather.main.humidity}%
-              </p>
-              <p className="text-sm">
-                <span className="font-semibold">Wind Speed:</span> {weather.wind.speed} m/s
-              </p>
-              <p className="text-sm">
-                <span className="font-semibold">Pressure:</span> {weather.main.pressure} hPa
-              </p>
-              <p className="text-sm">
-                <span className="font-semibold">Feels Like:</span> {weather.main.feels_like}°C
-              </p>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Weather Data Display */}
+      {weather && !loading && (
+        <div
+          className={`mt-8 p-6 rounded-lg shadow-lg w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-4 ${
+            theme === "light" ? "bg-white" : "bg-gray-800 text-white"
+          }`}
+        >
+          <div className="p-4 border rounded-md shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">Weather Details</h2>
+            <div>Description: {weather.weather[0].description}</div>
+            <div>Temperature: {weather.main.temp}°C</div>
+            <div>Feels Like: {weather.main.feels_like}°C</div>
+            <div>Min Temp: {weather.main.temp_min}°C</div>
+            <div>Max Temp: {weather.main.temp_max}°C</div>
+          </div>
+
+          <div className="p-4 border rounded-md shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">Atmospheric Conditions</h2>
+            <div>Pressure: {weather.main.pressure} hPa</div>
+            <div>Wind Speed: {weather.wind.speed} m/s</div>
+            <div>Wind Direction: {weather.wind.deg}°</div>
+            <div>Cloudiness: {weather.clouds.all}%</div>
+            <div>Visibility: {weather.visibility / 1000} km</div>
+          </div>
+
+          <div className="p-4 border rounded-md shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">Sun Position</h2>
+            <div>Sunrise: {new Date(weather.sys.sunrise * 1000).toLocaleTimeString()}</div>
+            <div>Sunset: {new Date(weather.sys.sunset * 1000).toLocaleTimeString()}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
