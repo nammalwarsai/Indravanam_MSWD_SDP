@@ -23,9 +23,10 @@ const MailUs = () => {
     setStatus("Sending...");
     try {
       const templateParams = {
+        to_name: "Admin", // Customizable recipient name
         name: formData.name,
         phone: formData.phone,
-        email: formData.email, // Added user email
+        email: formData.email,
         message: formData.message,
       };
 
@@ -51,8 +52,6 @@ const MailUs = () => {
           : "bg-gradient-to-r from-blue-900 to-gray-800 text-white"
       } p-4`}
     >
-      
-
       <div
         className={`max-w-lg w-full p-6 rounded-lg shadow-lg transition-all ${
           theme === "light" ? "bg-white" : "bg-gray-800"
