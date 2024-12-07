@@ -11,7 +11,7 @@ export const AboutUs = () => {
   const teamMembers = [
     {
       name: "K TEJA",
-      role: "Frontend Developer",
+      role: "see ra teja the magic of git and render",
       id: "2300033461",
       avatar: "https://api.dicebear.com/8.x/lorelei-neutral/svg?seed=Alice",
       linkedin: "https://www.linkedin.com/in/k-teja-52b142325/",
