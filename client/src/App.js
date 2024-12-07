@@ -15,6 +15,8 @@ import Footer from './Components/Footer';
 import GardenPlanner from './Components/GardenPlanner';
 import LoginSignup from './Components/LoginSignup';
 import Chatbot from './Components/Chatbot';
+import MailUs from './Components/MailUs';
+import StatisticsSection from './Components/StatisticsSection';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -36,8 +38,12 @@ function App() {
                 isAuthenticated ? (
                   <>
                     <ShuffleHero />
+                    <SeeWeather />
                     <ShuffleHero2 />
+                    <GardenPlanner />
                     <ShuffleHero3 />
+                    <StatisticsSection />
+                    <MailUs/>
                     <Footer />
                   </>
                 ) : (
@@ -105,6 +111,12 @@ function App() {
               path="/chatbot"
               element={
                 isAuthenticated ? <Chatbot /> : <Navigate to="/login" replace />
+              }
+            />
+            <Route
+              path="/MailUs"
+              element={
+                isAuthenticated ? <MailUs/> : <Navigate to="/login" replace />
               }
             />
           </Routes>

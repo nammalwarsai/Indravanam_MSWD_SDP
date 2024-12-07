@@ -14,8 +14,7 @@ export const SlideTabsExample = ({ onLogout }) => {
   );
 };
 
-// SlideTabs component with Navbar and Logout button
-// SlideTabs component with Navbar and Logout button
+
 const SlideTabs = ({ onLogout }) => {
   const [position, setPosition] = useState({
     left: 0,
@@ -50,7 +49,7 @@ const SlideTabs = ({ onLogout }) => {
         <Link to="/gardening-tips">Gardening Tips</Link>
       </Tab>
       <Tab setPosition={setPosition} theme={theme}>
-        <Link to="/about-us">Contact Team</Link>
+        <Link to="/about-us">OUR_TEAM</Link>
       </Tab>
       <Tab setPosition={setPosition} theme={theme}>
         <Link to="/See-weather">See Weather</Link>
@@ -63,6 +62,9 @@ const SlideTabs = ({ onLogout }) => {
       </Tab>
       <Tab setPosition={setPosition} theme={theme}>
         <Link to="/Chatbot">Chatbot</Link>
+      </Tab>
+      <Tab setPosition={setPosition} theme={theme}>
+        <Link to="/MailUs">MAIL_US</Link>
       </Tab>
 
       {/* Container for Theme Toggle and Logout Button */}
