@@ -14,7 +14,7 @@ export const AboutUs = () => {
       role: "Frontend Developer",
       id: "2300033461",
       avatar: "https://api.dicebear.com/8.x/lorelei-neutral/svg?seed=Alice",
-      linkedin: "https://www.linkedin.com/in/alice",
+      linkedin: "https://www.linkedin.com/in/k-teja-52b142325/",
     },
     {
       name: "K R S NAMMALWAR",

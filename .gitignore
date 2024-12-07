@@ -2,8 +2,6 @@
 client/node_modules/
 server/node_modules/
 
-# Do not ignore the main node_modules (for TailwindCSS and other dependencies)
-# Keep this to avoid redeploy issues if these are needed
 !/node_modules
 
 # Ignore build directories

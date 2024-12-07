@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import Example from "./SliderToggle";
 import { useTheme } from "./ThemeContext";
-import SingleTabWithDropdown from "./SingleTabWithDropdown";
 
 // Main SlideTabsExample component
 export const SlideTabsExample = ({ onLogout }) => {
@@ -14,14 +13,13 @@ export const SlideTabsExample = ({ onLogout }) => {
   );
 };
 
-
 const SlideTabs = ({ onLogout }) => {
   const [position, setPosition] = useState({
     left: 0,
     width: 0,
     opacity: 0,
   });
-  const { theme, toggleTheme } = useTheme(); // Assuming 'toggleTheme' is provided by the context
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   // Handle logout action
@@ -44,7 +42,9 @@ const SlideTabs = ({ onLogout }) => {
       <Tab setPosition={setPosition} theme={theme}>
         <Link to="/">Home</Link>
       </Tab>
-      <SingleTabWithDropdown setPosition={setPosition} theme={theme} />
+      <Tab setPosition={setPosition} theme={theme}>
+        <Link to="/remainders">Remainders</Link> {/* Directly linked here */}
+      </Tab>
       <Tab setPosition={setPosition} theme={theme}>
         <Link to="/gardening-tips">Gardening Tips</Link>
       </Tab>
@@ -67,39 +67,15 @@ const SlideTabs = ({ onLogout }) => {
         <Link to="/MailUs">MAIL_US</Link>
       </Tab>
 
-      {/* Container for Theme Toggle and Logout Button */}
-      <div className="absolute top-3 right-5 flex items-center z-20 mt-2">
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          style={{
-            padding: "8px 15px",
-            backgroundColor: theme === "light" ? "#4CAF50" : "#333",
-            border: "none",
-            borderRadius: "5px",
-            color: "#fff",
-            cursor: "pointer",
-            marginRight: "10px",
-          }}
-        >
-          {theme === "light" ? "Light" : "Dark"}
-        </button>
-
-        {/* Logout Button */}
+      {/* Add Logout Button as a Tab */}
+      <Tab setPosition={setPosition} theme={theme}>
         <button
           onClick={handleLogout}
-          style={{
-            padding: "8px 15px",
-            backgroundColor: "#ff5252",
-            border: "none",
-            borderRadius: "5px",
-            color: "#fff",
-            cursor: "pointer",
-          }}
+         
         >
-          Logout
+          LOGOUT
         </button>
-      </div>
+      </Tab>
 
       {/* Animation effect for tab sliding */}
       <Example />

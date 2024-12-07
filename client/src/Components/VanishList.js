@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiPlus, FiClock, FiTrash2 } from "react-icons/fi";
-import SlideInNotifications from "./SlideInNotifications"; 
+import SlideInNotifications from "./SlideInNotifications";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTheme } from "./ThemeContext"; // Adjust path as necessary
 
 export const VanishList = () => {
   const [todos, setTodos] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const { theme, toggleTheme } = useTheme(); // Access theme context
 
   const removeNotif = (id) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -60,33 +62,83 @@ export const VanishList = () => {
   };
 
   return (
-    <section className="min-h-screen bg-zinc-950 py-24 m-0 p-0">
+    <section
+      className={`min-h-screen py-24 m-0 p-0 transition-all ${
+        theme === "light" ? "bg-gray-100" : "bg-gray-900"
+      }`}
+    >
       <SlideInNotifications notifications={notifications} removeNotif={removeNotif} />
       <div className="mx-auto w-full max-w-xl px-4">
-        <Header />
+        <Header toggleTheme={toggleTheme} theme={theme} />
         <Todos
           removeElement={removeElement}
           todos={todos}
           handleCheck={handleCheck}
+          theme={theme}
         />
-        <Form setTodos={setTodos} handleAddTodo={handleAddTodo} />
+        <Form setTodos={setTodos} handleAddTodo={handleAddTodo} theme={theme} />
       </div>
     </section>
   );
 };
 
 // Header Component
-const Header = () => {
+const Header = ({ toggleTheme, theme }) => {
   return (
-    <div className="mb-6">
-      <h1 className="text-xl font-medium text-white">Good morning! ☀️</h1>
-      <p className="text-zinc-400">Let's see what we've got to do today.</p>
+    <div className="mb-6 flex justify-between items-center">
+     
+      <h1
+        className={`text-xl font-medium ${
+          theme === "light" ? "text-black" : "text-white"
+        }`}
+      >
+        Welcome To Your Custom Kanban Board
+      </h1>
+      <h1
+        className={`text-x1 font-medium ${
+          theme === "light" ? "text-black" : "text-white"
+        }`}
+      >
+          EXPLORE OUR FEATURE TO MEET YOUR UNIQUE NEEDS AND TIME MANAGEMENT NEEDS
+      </h1>
+    </div>
+  );
+};
+
+// Todos Component
+const Todos = ({ todos, removeElement, handleCheck, theme }) => {
+  return (
+    <div className="space-y-4">
+      {todos.map((todo) => (
+        <div
+          key={todo.id}
+          className={`flex justify-between items-center p-4 border rounded-md shadow-sm ${
+            theme === "light" ? "bg-white text-black" : "bg-gray-800 text-white"
+          }`}
+        >
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={todo.checked}
+              onChange={() => handleCheck(todo.id)}
+              className="mr-4"
+            />
+            <span>{todo.text}</span>
+          </div>
+          <button
+            onClick={() => removeElement(todo.id)}
+            className="text-red-500"
+          >
+            <FiTrash2 />
+          </button>
+        </div>
+      ))}
     </div>
   );
 };
 
 // Form Component
-const Form = ({ setTodos, handleAddTodo }) => {
+const Form = ({ setTodos, handleAddTodo, theme }) => {
   const [visible, setVisible] = useState(false);
   const [time, setTime] = useState(15);
   const [text, setText] = useState("");
@@ -111,13 +163,17 @@ const Form = ({ setTodos, handleAddTodo }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 25 }}
             onSubmit={handleSubmit}
-            className="mb-6 w-full rounded border border-zinc-700 bg-zinc-900 p-3"
+            className={`mb-6 w-full rounded border p-3 ${
+              theme === "light" ? "bg-white" : "bg-gray-800"
+            }`}
           >
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="What do you need to do?"
-              className="h-24 w-full resize-none rounded bg-zinc-900 p-3 text-sm text-zinc-50 placeholder-zinc-500 caret-zinc-50 focus:outline-0"
+              className={`h-24 w-full resize-none rounded p-3 text-sm ${
+                theme === "light" ? "bg-gray-100 text-black" : "bg-gray-700 text-white"
+              }`}
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -130,19 +186,32 @@ const Form = ({ setTodos, handleAddTodo }) => {
                 <button
                   type="button"
                   onClick={() => setUnit("mins")}
-                  className={`rounded px-1.5 py-1 text-xs ${unit === "mins" ? "bg-white text-zinc-950" : "bg-zinc-300/20 text-zinc-300 transition-colors hover:bg-zinc-600 hover:text-zinc-200"}`}
+                  className={`rounded px-1.5 py-1 text-xs ${
+                    unit === "mins"
+                      ? "bg-white text-zinc-950"
+                      : "bg-zinc-300/20 text-zinc-300"
+                  }`}
                 >
                   mins
                 </button>
                 <button
                   type="button"
                   onClick={() => setUnit("hrs")}
-                  className={`rounded px-1.5 py-1 text-xs ${unit === "hrs" ? "bg-white text-zinc-950" : "bg-zinc-300/20 text-zinc-300 transition-colors hover:bg-zinc-600 hover:text-zinc-200"}`}
+                  className={`rounded px-1.5 py-1 text-xs ${
+                    unit === "hrs"
+                      ? "bg-white text-zinc-950"
+                      : "bg-zinc-300/20 text-zinc-300"
+                  }`}
                 >
                   hrs
                 </button>
               </div>
-              <button type="submit" className="rounded bg-indigo-600 px-1.5 py-1 text-xs text-indigo-50 transition-colors hover:bg-indigo-500">
+              <button
+                type="submit"
+                className={`rounded px-1.5 py-1 text-xs ${
+                  theme === "light" ? "bg-indigo-600 text-indigo-50" : "bg-indigo-500 text-indigo-200"
+                }`}
+              >
                 Submit
               </button>
             </div>
@@ -151,51 +220,13 @@ const Form = ({ setTodos, handleAddTodo }) => {
       </AnimatePresence>
       <button
         onClick={() => setVisible((prev) => !prev)}
-        className="grid w-full place-content-center rounded-full border border-zinc-700 bg-zinc-900 py-3 text-lg text-white transition-colors hover:bg-zinc-800 active:bg-zinc-900"
+        className={`grid w-full place-content-center rounded-full border py-3 text-lg text-white transition-colors ${
+          theme === "light" ? "bg-gray-200 hover:bg-gray-300" : "bg-gray-800 hover:bg-gray-700"
+        }`}
       >
-        <FiPlus className={`transition-transform ${visible ? "rotate-45" : "rotate-0"}`} />
+        <FiPlus />
       </button>
     </div>
-  );
-};
-
-// Todos Component
-const Todos = ({ todos, handleCheck, removeElement }) => {
-  return (
-    <div className="w-full space-y-3">
-      <AnimatePresence>
-        {todos.map((todo) => (
-          <Todo
-            key={todo.id}
-            id={todo.id}
-            text={todo.text}
-            checked={todo.checked}
-            time={todo.time}
-            handleCheck={handleCheck}
-            removeElement={removeElement}
-          />
-        ))}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-// Todo Component
-const Todo = ({ id, text, checked, time, handleCheck, removeElement }) => {
-  return (
-    <motion.div layout className="relative flex w-full items-center gap-3 rounded border border-zinc-700 bg-zinc-900 p-3">
-      <input type="checkbox" checked={checked} onChange={() => handleCheck(id)} className="size-4 accent-indigo-400" />
-      <p className={`text-white ${checked && "text-zinc-400"}`}>{text}</p>
-      <div className="ml-auto flex gap-1.5">
-        <div className="flex items-center gap-1.5 rounded bg-zinc-800 px-1.5 py-1 text-xs text-zinc-400">
-          <FiClock />
-          <span>{time}</span>
-        </div>
-        <button onClick={() => removeElement(id)} className="rounded bg-red-300/20 px-1.5 py-1 text-xs text-red-300 transition-colors hover:bg-red-600 hover:text-red-200">
-          <FiTrash2 />
-        </button>
-      </div>
-    </motion.div>
   );
 };
 

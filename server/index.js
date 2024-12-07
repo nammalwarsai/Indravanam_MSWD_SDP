@@ -1,39 +1,38 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 const cors = require('cors');
+const dotenv = require('dotenv');
 
+// Load environment variables from the .env file
 dotenv.config();
+
+// Log the MongoDB URI to ensure it's loaded correctly
+console.log('MongoDB URI:', process.env.MONGO_URI);
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connected successfully');
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
 
 // Initialize the app
 const app = express();
 
-app.use(express.json());
+// Middlewares
 app.use(cors());
-
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((error) => {
-  console.error('Error connecting to MongoDB:', error);
-});
+app.use(bodyParser.json());
 
 // Routes
-// Define your routes after initializing the app
-// Uncomment the following line if you have defined routes (replace 'exampleRoute' with your actual route)
-// const exampleRoute = require('./routes/exampleRoute');
-// app.use('/api', exampleRoute); // Base route for API
-
-// Sample route
 app.get('/', (req, res) => {
-  res.send('Hello in the local development environment!');
+  res.send('Welcome to the Authentication API!');
 });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

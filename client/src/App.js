@@ -16,7 +16,6 @@ import GardenPlanner from './Components/GardenPlanner';
 import LoginSignup from './Components/LoginSignup';
 import Chatbot from './Components/Chatbot';
 import MailUs from './Components/MailUs';
-import StatisticsSection from './Components/StatisticsSection';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -38,11 +37,8 @@ function App() {
                 isAuthenticated ? (
                   <>
                     <ShuffleHero />
-                    <SeeWeather />
                     <ShuffleHero2 />
-                    <GardenPlanner />
                     <ShuffleHero3 />
-                    <StatisticsSection />
                     <MailUs/>
                     <Footer />
                   </>
