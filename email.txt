@@ -1,0 +1,490 @@
+import React, { useState } from "react";
+import emailjs from "@emailjs/browser";
+import { useTheme } from "./ThemeContext";
+
+const MailUs = () => {
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
+  const [status, setStatus] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const { theme } = useTheme();
+
+  // EmailJS credentials
+  const SERVICE_ID = "service_7yusury";
+  const TEMPLATE_ADMIN_ID = "template_g3bkrml"; // Admin Template
+  const TEMPLATE_USER_ID = "template_izvy4xt"; // User Reply Template
+  const USER_ID = "MuVxvwd1td-HnO_tc";
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+
+    const templateParams = {
+      to_name: "Admin",
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      message: formData.message,
+    };
+
+    try {
+      // Send email to admin
+      await emailjs.send(SERVICE_ID, TEMPLATE_ADMIN_ID, templateParams, USER_ID);
+
+      // Send acknowledgment email to user
+      const userTemplateParams = {
+        user_name: formData.name,
+        user_email: formData.email,
+        feedback_message: formData.message,
+      };
+      await emailjs.send(SERVICE_ID, TEMPLATE_USER_ID, userTemplateParams, USER_ID);
+
+      setStatus("Email sent successfully!");
+      setShowPopup(true);
+      setFormData({ name: "", phone: "", email: "", message: "" });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setStatus("Failed to send email.");
+    }
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+  };
+
+  return (
+    <div
+      className={`min-h-screen flex items-center justify-center transition-all ${
+        theme === "light"
+          ? "bg-gradient-to-r from-green-200 to-blue-100 text-black"
+          : "bg-gradient-to-r from-blue-900 to-gray-800 text-white"
+      } p-4`}
+    >
+      <div
+        className={`max-w-lg w-full p-6 rounded-lg shadow-lg transition-all ${
+          theme === "light" ? "bg-white" : "bg-gray-800"
+        }`}
+      >
+        <h2 className="text-3xl font-bold text-center mb-6">Mail Us</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="name">
+              Your Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="phone">
+              Your Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="email">
+              Your Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email address"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="message">
+              Your Message
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Enter your message"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              rows="4"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className={`w-full py-2 rounded-lg ${
+              theme === "light"
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-purple-600 text-white hover:bg-purple-700"
+            }`}
+          >
+            Send
+          </button>
+        </form>
+
+        {status && (
+          <p
+            className={`mt-4 text-center ${
+              status.includes("successfully") ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {status}
+          </p>
+        )}
+
+        {showPopup && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-20">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <h3 className="text-xl font-semibold mb-4">Success!</h3>
+              <p className="mb-4">Your message has been successfully sent to the admin.</p>
+              <button
+                onClick={closePopup}
+                className="bg-blue-600 text-white py-2 px-6 rounded-md"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MailUs;
+___________________________
+New Message Received
+
+Hello {{to_name}},
+
+You have received a new message from {{from_name}}. Here's the message:
+
+{{message}}
+
+Thank you for using our website. We appreciate your feedback and will get back to you soon!
+
+Visit Our Website
+
+Best Regards,
+The YourWebsite Team
+
+This is an automated email. Please do not reply directly to this email.
+THIS IS THE user reply templete 
+EmailJS
+Email Services
+Email Templates
+Email History
+Suppressions
+Contacts
+Events
+Statistics
+Team Members
+Account
+Personal Settings
+Requests received
+11
+/
+200
+Resets on Jan 2
+189 requests left
+Welcome,
+User Reply Template
+Subject
+THANK YOU FOR YOUR FEED-BACK MR/MS {{from_name}}
+Content
+
+To Email
+{{to_mail}}
+From Name
+nammalwarsai(admin of Indravanam)
+From Email
+
+Use Default Email Address
+nammalwarsai1@gmail.com
+Reply To
+{{reply_to}}
+Bcc
+Cc
+this is the website copy paster version of the user reply templete 
+Feedback Received
+
+Dear {{to_name}},
+
+The user has shared the following feedback with us:
+
+{{message}}
+
+Additional Information:
+
+Name	{{name}}
+Phone	{{phone}}
+Email	{{email}}
+
+The feedback provided is very important to us. Thank you to both the user and the admin for your support!
+
+This is an automated message. Please do not reply.
+this is the admin templete 
+EmailJS
+Email Services
+Email Templates
+Email History
+Suppressions
+Contacts
+Events
+Statistics
+Team Members
+Account
+Personal Settings
+Requests received
+11
+/
+200
+Resets on Jan 2
+189 requests left
+Welcome,
+ADMIN'S MAIL TEMPLETE
+Subject
+FeedBack form the user  {{from_name}}
+Content
+
+To Email
+nammalwarsai1@gmail.com
+From Name
+nammalwarsai
+From Email
+
+Use Default Email Address
+Reply To
+{{reply_to}}
+Bcc
+Cc
+this is the website page copy paster thing 
+import React, { useState } from "react";
+import emailjs from "@emailjs/browser";
+import { useTheme } from "./ThemeContext";
+
+const MailUs = () => {
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "", message: "" });
+  const [status, setStatus] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
+  const { theme } = useTheme();
+
+  // EmailJS credentials
+  const SERVICE_ID = "service_7yusury";
+  const TEMPLATE_ADMIN_ID = "template_g3bkrml"; // Admin Template
+  const TEMPLATE_USER_ID = "template_izvy4xt"; // User Reply Template
+  const USER_ID = "MuVxvwd1td-HnO_tc";
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("Sending...");
+
+    const templateParams = {
+      to_name: "Admin",
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      message: formData.message,
+    };
+
+    try {
+      // Send email to admin
+      await emailjs.send(SERVICE_ID, TEMPLATE_ADMIN_ID, templateParams, USER_ID);
+
+      // Send acknowledgment email to user
+      const userTemplateParams = {
+        user_name: formData.name,
+        user_email: formData.email,
+        feedback_message: formData.message,
+      };
+      await emailjs.send(SERVICE_ID, TEMPLATE_USER_ID, userTemplateParams, USER_ID);
+
+      setStatus("Email sent successfully!");
+      setShowPopup(true);
+      setFormData({ name: "", phone: "", email: "", message: "" });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setStatus("Failed to send email.");
+    }
+  };
+
+  const closePopup = () => {
+    setShowPopup(false);
+  };
+
+  return (
+    <div
+      className={`min-h-screen flex items-center justify-center transition-all ${
+        theme === "light"
+          ? "bg-gradient-to-r from-green-200 to-blue-100 text-black"
+          : "bg-gradient-to-r from-blue-900 to-gray-800 text-white"
+      } p-4`}
+    >
+      <div
+        className={`max-w-lg w-full p-6 rounded-lg shadow-lg transition-all ${
+          theme === "light" ? "bg-white" : "bg-gray-800"
+        }`}
+      >
+        <h2 className="text-3xl font-bold text-center mb-6">Mail Us</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="name">
+              Your Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter your name"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="phone">
+              Your Phone
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="email">
+              Your Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email address"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block font-bold mb-2" htmlFor="message">
+              Your Message
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              placeholder="Enter your message"
+              className={`w-full p-2 border rounded-md ${
+                theme === "light"
+                  ? "border-gray-300 bg-gray-100"
+                  : "border-gray-700 bg-gray-900"
+              }`}
+              rows="4"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            className={`w-full py-2 rounded-lg ${
+              theme === "light"
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-purple-600 text-white hover:bg-purple-700"
+            }`}
+          >
+            Send
+          </button>
+        </form>
+
+        {status && (
+          <p
+            className={`mt-4 text-center ${
+              status.includes("successfully") ? "text-green-500" : "text-red-500"
+            }`}
+          >
+            {status}
+          </p>
+        )}
+
+        {showPopup && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-20">
+            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
+              <h3 className="text-xl font-semibold mb-4">Success!</h3>
+              <p className="mb-4">Your message has been successfully sent to the admin.</p>
+              <button
+                onClick={closePopup}
+                className="bg-blue-600 text-white py-2 px-6 rounded-md"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default MailUs;
+This is the only code which is handling all the functionality. Okay, no other back end, nothing. Just 1 component. Mayless component is the handling all the functionality of taking the user data and sending the emails for both admin as well as user. Make sure that I given you the two templates. That is the user template as well as the admin template. So make sure that you integrate those 2 templates things, or the 2 templates, data which we should get from the front end into the code Mail us code and make sure that this is the we give the correct code, or you give the correct instructions so that this is the functionality that I am expecting When the user clicks on the page or the component, he will be created to the page. He needed to perform actually, where he enters his four details, his name, his email id, his phone number his feedback, or the message you want to talk to us. So when the user clicks on submit, 2 mail should go at a time. The one that admin receives with all the four data things, and the one that user receives which mail to which mail to which the mail should go Who is the mail should go there Template which we have been integrated with
