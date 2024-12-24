@@ -1,19 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { HfInference } from "@huggingface/inference";
-import { FaCopy, FaPaperPlane, FaTrashAlt } from "react-icons/fa";
+import { FaPaperPlane, FaTrash, FaCopy, FaRedo } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { useTheme } from "./ThemeContext";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { atomOneDark } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
-const client = new HfInference("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");
+const client = new HfInference("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");
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const { theme } = useTheme();
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,167 +23,242 @@ const Chatbot = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const getResponse = async (userInput) => {
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleRetry = async () => {
+    if (messages.length > 0) {
+      const lastUserMessage = messages.find(m => m.user)?.text;
+      if (lastUserMessage) {
+        setError(null);
+        const response = await getResponse(lastUserMessage);
+        if (response) {
+          const botMessage = {
+            user: false,
+            text: response,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, botMessage]);
+        }
+      }
+    }
+  };
+
+  const getResponse = async (userInput, retryAttempt = 0) => {
     try {
       setIsTyping(true);
-      const chatCompletion = await client.chatCompletion({
+      setError(null);
+
+      const response = await client.chatCompletion({
         model: "Qwen/Qwen2.5-Coder-32B-Instruct",
-        messages: [{ role: "user", content: userInput }],
+        messages: [
+          { role: "system", content: "You are a helpful AI assistant." },
+          ...messages.map(msg => ({
+            role: msg.user ? "user" : "assistant",
+            content: msg.text
+          })),
+          { role: "user", content: userInput }
+        ],
         max_tokens: 500000,
+        temperature: 0.7,
+        retry: true,
+        timeout: 30000,
       });
 
-      const response = chatCompletion.choices[0].message.content;
-      return response;
+      if (!response?.choices?.[0]?.message?.content) {
+        throw new Error("Invalid response format");
+      }
+
+      return response.choices[0].message.content;
+
     } catch (error) {
-      console.error("Error fetching response:", error);
-      return "I'm sorry, I couldn't get a response at the moment.";
+      console.error("API Error:", error);
+      
+      if (retryAttempt < MAX_RETRIES) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+        return getResponse(userInput, retryAttempt + 1);
+      }
+
+      setError({
+        message: "Failed to get response. Please try again.",
+        details: error.message
+      });
+      return null;
     } finally {
       setIsTyping(false);
     }
   };
 
   const handleSend = async () => {
-    if (input.trim()) {
-      const userMessage = { user: true, text: input, timestamp: new Date() };
-      setMessages([...messages, userMessage]);
-      setInput("");
+    if (!input.trim()) return;
 
-      const botResponse = await getResponse(input);
+    const userMessage = {
+      user: true,
+      text: input,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput("");
+
+    const botResponse = await getResponse(input);
+    if (botResponse) {
       const botMessage = {
         user: false,
         text: botResponse,
-        timestamp: new Date(),
+        timestamp: new Date()
       };
-
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
     }
-  };
-
-  const handleClearChat = () => {
-    setMessages([]);
-  };
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-    alert("Copied to clipboard!");
   };
 
   const formatMessage = (text) => {
-    if (text.includes("```")) {
-      const parts = text.split("```");
-      return parts.map((part, index) => {
-        if (index % 2 === 1) {
-          return (
-            <div className="my-4 rounded-lg overflow-hidden">
-              <SyntaxHighlighter
-                language="javascript"
-                style={theme === "dark" ? docco : undefined}
-                className="p-4"
-              >
-                {part.trim()}
-              </SyntaxHighlighter>
-            </div>
-          );
-        }
-        return <p className="mb-2">{part}</p>;
+    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: text.slice(lastIndex, match.index)
+        });
+      }
+
+      parts.push({
+        type: 'code',
+        language: match[1] || 'javascript',
+        content: match[2].trim()
+      });
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex)
       });
     }
-    return <p>{text}</p>;
+
+    return parts.map((part, index) => {
+      if (part.type === 'code') {
+        return (
+          <div key={index} className="my-4 rounded-lg overflow-hidden">
+            <SyntaxHighlighter
+              language={part.language}
+              style={atomOneDark}
+              className="!bg-gray-900"
+            >
+              {part.content}
+            </SyntaxHighlighter>
+          </div>
+        );
+      }
+      return <p key={index}>{part.content}</p>;
+    });
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Main Messages Container */}
-      <div className={`flex-1 overflow-y-auto p-4 space-y-6 ${
-        theme === "dark" ? "bg-gray-800" : "bg-gray-50"
-      }`}>
-        <AnimatePresence>
-          {messages.map((msg, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className={`flex ${msg.user ? "justify-end" : "justify-start"}`}
-            >
-              <div className={`max-w-3xl ${msg.user ? "ml-12" : "mr-12"}`}>
-                <div className={`p-4 rounded-2xl shadow-lg ${
-                  msg.user
-                    ? theme === "dark" 
-                      ? "bg-blue-600 text-white" 
-                      : "bg-blue-500 text-white"
-                    : theme === "dark" 
-                      ? "bg-gray-700 text-white" 
-                      : "bg-white text-gray-800"
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="max-w-4xl mx-auto">
+          <AnimatePresence>
+            {messages.map((message, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex ${message.user ? "justify-end" : "justify-start"} mb-4`}
+              >
+                <div className={`max-w-3xl rounded-lg p-4 ${
+                  message.user
+                    ? "bg-blue-600 text-white"
+                    : "bg-white dark:bg-gray-800 shadow-lg"
                 }`}>
-                  {formatMessage(msg.text)}
-                  {!msg.user && (
-                    <button
-                      onClick={() => handleCopy(msg.text)}
-                      className="mt-2 text-sm opacity-70 hover:opacity-100 transition-opacity"
-                    >
-                      <FaCopy className="inline mr-1" /> Copy
-                    </button>
-                  )}
+                  <div className="prose dark:prose-invert">
+                    {formatMessage(message.text)}
+                  </div>
+                  
+                  <div className="flex items-center mt-2 space-x-2 text-sm opacity-70">
+                    <span>{message.timestamp.toLocaleTimeString()}</span>
+                    {!message.user && (
+                      <button
+                        onClick={() => copyToClipboard(message.text)}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                        title="Copy message"
+                      >
+                        <FaCopy size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span className={`text-xs mt-1 block ${
-                  theme === "dark" ? "text-gray-400" : "text-gray-500"
-                }`}>
-                  {msg.timestamp.toLocaleTimeString()}
-                </span>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
           {isTyping && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-start"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center space-x-2 p-4"
             >
-              <div className={`p-4 rounded-2xl shadow-lg ${
-                theme === "dark" ? "bg-gray-700" : "bg-white"
-              }`}>
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" />
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce delay-100" />
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce delay-200" />
-                </div>
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-100" />
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce delay-200" />
               </div>
+              <span className="text-sm text-gray-500">AI is thinking...</span>
             </motion.div>
           )}
-        </AnimatePresence>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              <span className="block sm:inline">{error.message}</span>
+              <button
+                onClick={handleRetry}
+                className="ml-2 text-sm underline flex items-center"
+              >
+                <FaRedo className="mr-1" /> Retry
+              </button>
+            </div>
+          )}
+        </div>
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Section */}
-      <div className={`p-4 border-t ${
-        theme === "dark" ? "bg-gray-900 border-gray-700" : "bg-white border-gray-200"
-      }`}>
-        <div className="max-w-4xl mx-auto flex gap-4">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type your message..."
-            className={`flex-1 p-4 rounded-xl border focus:ring-2 focus:outline-none transition-all ${
-              theme === "dark"
-                ? "bg-gray-800 border-gray-700 text-white focus:ring-blue-500"
-                : "bg-gray-50 border-gray-300 text-gray-900 focus:ring-blue-400"
-            }`}
-          />
-          <button
-            onClick={handleSend}
-            className="px-6 py-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white transition-colors"
-          >
-            <FaPaperPlane />
-          </button>
-          <button
-            onClick={handleClearChat}
-            className="px-6 py-4 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors"
-          >
-            <FaTrashAlt />
-          </button>
+      <div className="border-t dark:border-gray-800 p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex space-x-4">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              placeholder="Type your message..."
+              className="flex-1 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <button
+              onClick={handleSend}
+              disabled={isTyping || !input.trim()}
+              className="px-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <FaPaperPlane />
+            </button>
+            <button
+              onClick={() => setMessages([])}
+              className="px-6 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            >
+              <FaTrash />
+            </button>
+          </div>
         </div>
       </div>
     </div>
